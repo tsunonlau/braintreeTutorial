@@ -1,11 +1,44 @@
+<div id="customer-details">
+  <form action="/action_page.php">
+    <label for="fname">First Name</label>
+    <input type="text" class="myField" id="fname" name="firstname" placeholder="Your name..">
+
+    <label for="lname">Last Name</label>
+    <input type="text" class="myField" id="lname" name="lastname" placeholder="Your last name..">
+  </form>
+</div>
 <div id="dropin-wrapper">
   <div id="checkout-message"></div>
   <div id="dropin-container"></div>
   <button id="submit-button">Submit payment</button>
 </div>
+</div>
+<style>
+  .myField {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+</style>
 <script>
-  var button = document.querySelector('#submit-button');
 
+  // Load random default customer profile
+  function loadProfile() {
+    $.ajax({
+    url: 'https://randomuser.me/api/',
+    dataType: 'json',
+    success: function(data) {
+	    $("#fname").val(data.results["0"].name.first);
+      $("#lname").val(data.results["0"].name.last);
+      }
+    });
+  }
+  loadProfile();
+  var button = document.querySelector('#submit-button');
   braintree.dropin.create({
     // Insert your tokenization key here
     authorization: 'sandbox_kt935wds_cd8s96zvwrn2cghw',
@@ -18,7 +51,7 @@
         $.ajax({
           type: 'POST',
           url: '/checkout',
-          data: {'paymentMethodNonce': payload.nonce}
+          data: {'paymentMethodNonce': payload.nonce, 'fname': $("#fname").val(), 'lname': $("#lname").val()}
         }).done(function(result) {
           // Tear down the Drop-in UI
           instance.teardown(function (teardownErr) {
@@ -28,14 +61,42 @@
               console.info('Drop-in UI has been torn down!');
               // Remove the 'Submit payment' button
               $('#submit-button').remove();
+              // Hide Customer input;
+              $('#customer-details').hide();
             }
           });
-
+          const customerName = $("#fname").val();
           if (result.success) {
-            $('#checkout-message').html('<h1>Success</h1><p>Your Drop-in UI is working! Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</a> for your test transactions.</p><p>Refresh to try another transaction.</p>');
+            let customerID = result.creditCard.customerId;
+            let myHTML = `
+              <h1>Thank you, ${customerName}</h1>
+                <p>Your customer ID is: ${customerID}.</p>
+                <p>Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</p>
+            `
+            $('#checkout-message').html(myHTML);
           } else {
             console.log(result);
-            $('#checkout-message').html('<h1>Error</h1><p>Check your console.</p>');
+            let status = result.verification.status;
+            let processorResponse = result.verification.additionalProcessorResponse;
+            let error = `
+            <h1>Error</h1>
+              <p>Check your console.</p>
+              <p>Refresh to try another transaction.</p>
+              <p>Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</p>
+            `;
+            if (result.verification) {
+              error = `
+              <h1>Error</h1>
+              <p>Sorry, ${customerName}</p>
+              <p> Your payment method is declined:
+                  <p>Status: ${status}</p> 
+                  <p>Detail: ${processorResponse}</p>
+                  <p>Check your console.</p>
+                  <p>Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</p>
+              </p>
+              `;
+            }
+            $('#checkout-message').html(error);
           }
         });
       });

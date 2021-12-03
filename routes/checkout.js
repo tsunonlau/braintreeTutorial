@@ -13,22 +13,34 @@ router.post('/', (req, res, next) => {
 
   // Use the payment method nonce here
   const nonceFromTheClient = req.body.paymentMethodNonce;
-  // Create a new transaction for $10
-  const newTransaction = gateway.transaction.sale({
-    amount: '10.00',
-    paymentMethodNonce: nonceFromTheClient,
-    options: {
-      // This option requests the funds from the transaction
-      // once it has been authorized successfully
-      submitForSettlement: true
+  const customerFirstName = req.body.fname;
+  const customerLastName = req.body.lname;
+  //====MY CODE HERE=====
+  //Create New Customer
+  gateway.customer.create({
+    firstName: customerFirstName,
+    lastName: customerLastName
+  }, (err, result) => {
+    let newCustomerID = result.customer.id; // e.g. 494019
+    if (result) {
+      //Create Payment Method to Customer using credit card nonce From Test Values
+      gateway.paymentMethod.create({
+        customerId: newCustomerID,
+        paymentMethodNonce: nonceFromTheClient,
+        options: {
+          verifyCard: true
+        }
+      }, (err, result) => {
+        if (result) {
+          res.send(result);
+        } else {
+          console.log(err);
+          res.send(err);
+        }
+      });
     }
-  }, (error, result) => {
-      if (result) {
-        res.send(result);
-      } else {
-        res.status(500).send(error);
-      }
   });
+
 });
 
 module.exports = router;
