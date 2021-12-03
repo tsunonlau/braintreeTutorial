@@ -26,13 +26,12 @@ The modules run in Sandbox mode and are designed to be run on a specific Cloud e
 
 # Demo
 
-	Visit URL http://braintree.billlau.link:3000/
-
-The Demo will simulate the credit card verification process in a sandbox environment. The project automated the customer profile creation by randomly loading a user on page load. The Braintree Drop-in UI https://developer.paypal.com/braintree/docs/start/drop-in will take the testing credit card values from the developer documentation. There are two routes for this demo:
-
+The Demo will simulate the credit card verification process in a sandbox environment. The project automated the customer profile creation by randomly loading a user on page load. The Braintree Drop-in UI https://developer.paypal.com/braintree/docs/start/drop-in will take the testing credit card values from the developer documentation. There are two routes for this demo 1) a successful card verification and sales transaction for settlement and 2) a unsuccesssful card verification.
 
 1. For testing unsuccessful card verification. Fill Form with the fake card numbers for unsuccessful verification from https://developer.paypal.com/braintree/docs/reference/general/testing/node#card-numbers-for-unsuccessful-verification and any valid expiry. For example 4000111111111115. The page will reload and show the error messages for an unsuccessful card verification.
 
 2. For testing a successful card verification. Fill a valid Card Number: 4111 1111 1111 1111, and any valid expiry date. Click 'Submit Payment' and see the on-screen responses. A successful response will return the customer id.
 
-  
+To run the demo, please visit:
+
+	URL http://braintree.billlau.link:3000/
